@@ -109,5 +109,5 @@ fn main() {
     assert_eq!((file_length - 8) as u32, riff.size);
 
     let (input, fmt) = verify_fmt(wav).unwrap();
-    println!("{:?}", fmt.audio_format);
+    println!("{:?}", fmt);
 }
