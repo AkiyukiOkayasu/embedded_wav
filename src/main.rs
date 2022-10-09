@@ -64,6 +64,16 @@ struct FmtChunk {
     bit_depth: u16,
 }
 
+/// factチャンク
+///
+/// optionalのチャンク
+/// https://www.g200kg.com/jp/docs/tech/wavfile.html
+///
+/// * 'dw_sample_length' - dataチャンクに記録されている1ch当たりのサンプル数
+#[derive(Debug)]
+struct FactChunk {
+    dw_sample_length: u32,
+}
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
 fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
     let (input, _) = tag(b"RIFF")(input)?;
