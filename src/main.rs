@@ -38,7 +38,7 @@ struct FmtChunk {
     wave_format_tag: WaveFormatTag,
     num_channels: u16,
     sample_rate: u32,
-    data_size_per_seconds: u32,
+    bytes_per_seconds: u32, //sampleRate * num_channels * (bit_depth / 8)
     block_size: u16,
     bit_depth: u16,
 }
@@ -82,7 +82,7 @@ fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
 
     let (input, num_channels) = le_u16(input)?;
     let (input, sample_rate) = le_u32(input)?;
-    let (input, data_size_per_seconds) = le_u32(input)?;
+    let (input, bytes_per_seconds) = le_u32(input)?;
     let (input, block_size) = le_u16(input)?;
     let (input, bit_depth) = le_u16(input)?;
 
@@ -92,7 +92,7 @@ fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
             wave_format_tag,
             num_channels,
             sample_rate,
-            data_size_per_seconds,
+            bytes_per_seconds,
             block_size,
             bit_depth,
         },
