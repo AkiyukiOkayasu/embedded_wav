@@ -74,6 +74,21 @@ struct FmtChunk {
 struct FactChunk {
     dw_sample_length: u32,
 }
+
+/// PEAKチャンク
+///
+/// optionalのチャンク
+/// https://www.g200kg.com/jp/docs/tech/wavfile.html
+///
+/// peak_levelとposition_peakはチャンネルごとに作られるのでtemplate的にチャンネル数の変更に対応するべきかも
+#[derive(Debug)]
+struct PeakChunk {
+    version: u32,           // 1固定
+    time_stamp: u32,        // 1970/1/1からの秒数
+    peak_level_1ch: f32,    // 0dBFSを1.0とする符号付きfloat値
+    position_peak_1ch: u32, // 開始位置からのサンプル数
+}
+
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
 fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
     let (input, _) = tag(b"RIFF")(input)?;
