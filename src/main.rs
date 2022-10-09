@@ -46,6 +46,9 @@ fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
     Ok((input, RiffChunk { size, format }))
 }
 
+///fmtチャンクを検査します  
+///
+/// * 'input' - テスト
 fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
     let (input, _) = tag(b"fmt ")(input)?;
     let (input, chunk_size) = le_u32(input)?;
