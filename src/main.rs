@@ -19,6 +19,20 @@ struct RiffChunk {
     id: RiffIdentifier,
 }
 
+/// chunkの種類
+///
+/// * "fmt " - 必須チャンク
+/// * "fact" - optional
+/// * "PEAK" - optional
+/// * "data" - 必須チャンク
+#[derive(Debug)]
+enum Chunk {
+    Fmt,  // b"fmt "
+    Fact, // b"fact"
+    PEAK, // b"PEAK"
+    Data, // b"data"
+}
+
 /// Waveの形式
 /// LinearPCMとIEEE FloatとIMA ADPCMくらいしか使わないはず
 /// https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/shared/mmreg.h#L2107-L2372
