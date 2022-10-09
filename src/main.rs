@@ -3,15 +3,20 @@ use nom::number::complete::{le_u16, le_u32};
 use nom::IResult;
 
 #[derive(Debug, PartialEq)]
-enum Format {
-    Wave,
-    Non,
+enum RiffIdentifier {
+    Wave, //b"WAVE"
+    Avi,  //b"AVI "
+    Unknown,
 }
 
+/// RIFFチャンクの情報
+///
+/// * 'size' - ファイルサイズ(byte) - 8
+/// * 'id' - RIFFの識別子 基本"WAVE"
 #[derive(Debug)]
 struct RiffChunk {
     size: u32,
-    format: Format,
+    id: RiffIdentifier,
 }
 
 /// Waveの形式
@@ -43,21 +48,22 @@ struct FmtChunk {
     bit_depth: u16,
 }
 
-/// ファイルがRIFFから始まり、フォーマットがWAVEであることのチェック
+/// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
 fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
     let (input, _) = tag(b"RIFF")(input)?;
     let (input, size) = le_u32(input)?;
     let (input, id_str) = take(4usize)(input)?;
 
-    let format: Format = match id_str {
-        b"WAVE" => Format::Wave,
-        _ => Format::Non,
+    let id: RiffIdentifier = match id_str {
+        b"WAVE" => RiffIdentifier::Wave,
+        b"AVI " => RiffIdentifier::Avi,
+        _ => RiffIdentifier::Unknown,
     };
 
-    Ok((input, RiffChunk { size, format }))
+    Ok((input, RiffChunk { size, id }))
 }
 
-///fmtチャンクを検査します  
+/// fmtチャンクを検査します  
 ///
 /// * 'input' - テスト
 fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
@@ -105,7 +111,7 @@ fn main() {
     println!("{}", wav.len());
     let (wav, riff) = verify_riff(wav).unwrap();
     println!("{}", riff.size);
-    assert_eq!(riff.format, Format::Wave);
+    assert_eq!(riff.id, RiffIdentifier::Wave);
     assert_eq!((file_length - 8) as u32, riff.size);
 
     let (input, fmt) = verify_fmt(wav).unwrap();
