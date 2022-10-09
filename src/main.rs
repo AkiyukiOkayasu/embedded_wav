@@ -51,6 +51,8 @@ enum WaveFormatTag {
 }
 
 /// Fmtチャンク構造体  
+///
+/// 必須チャンク
 /// https://www.youfit.co.jp/archives/1418
 #[derive(Debug)]
 struct FmtChunk {
