@@ -25,12 +25,17 @@ struct RiffChunk {
 /// * "fact" - optional
 /// * "PEAK" - optional
 /// * "data" - 必須チャンク
-#[derive(Debug)]
-enum Chunk {
+#[derive(Debug, PartialEq)]
+enum ChunkId {
     Fmt,  // b"fmt "
     Fact, // b"fact"
     PEAK, // b"PEAK"
     Data, // b"data"
+    JUNK,
+    LIST,
+    IDv3,
+    Unknown,
+}
 }
 
 /// Waveの形式
