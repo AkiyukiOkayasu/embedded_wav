@@ -36,6 +36,12 @@ enum ChunkId {
     IDv3,
     Unknown,
 }
+
+#[derive(Debug)]
+struct Chunk<'a> {
+    id: ChunkId,
+    size: u32,
+    data: &'a [u8],
 }
 
 /// Waveの形式
@@ -110,14 +116,11 @@ fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
 }
 
 /// fmtチャンクを検査します  
-///
-/// * 'input' - テスト
-fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
-    let (input, _) = tag(b"fmt ")(input)?;
-    let (input, chunk_size) = le_u32(input)?;
-    assert_eq!(chunk_size, 16);
+fn parse_fmt(chunk: Chunk) -> IResult<&[u8], FmtChunk> {
+    assert_eq!(chunk.id, ChunkId::Fmt);
+    assert_eq!(chunk.size, 16);
 
-    let (input, format) = le_u16(input)?;
+    let (input, format) = le_u16(chunk.data)?;
     let wave_format_tag: WaveFormatTag = match format {
         0 => WaveFormatTag::Unknown,
         1 => WaveFormatTag::LinearPcm,
@@ -151,6 +154,24 @@ fn verify_fmt(input: &[u8]) -> IResult<&[u8], FmtChunk> {
     ))
 }
 
+fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
+    let (input, id) = take(4usize)(input)?;
+    let id = match id {
+        b"fmt " => ChunkId::Fmt,
+        b"fact" => ChunkId::Fact,
+        b"PEAK" => ChunkId::PEAK,
+        b"data" => ChunkId::Data,
+        b"JUNK" => ChunkId::JUNK,
+        b"IDv3" => ChunkId::IDv3,
+        b"LIST" => ChunkId::LIST,
+        _ => ChunkId::Unknown,
+    };
+    let (input, size) = le_u32(input)?;
+    let (input, data) = take(size)(input)?;
+
+    Ok((input, Chunk { id, size, data }))
+}
+
 fn main() {
     let wav = include_bytes!("../resources/test.wav");
     let file_length = wav.len();
@@ -160,6 +181,15 @@ fn main() {
     assert_eq!(riff.id, RiffIdentifier::Wave);
     assert_eq!((file_length - 8) as u32, riff.size);
 
-    let (input, fmt) = verify_fmt(wav).unwrap();
-    println!("{:?}", fmt);
+    let (wav, chunk) = parse_chunk(wav).unwrap();
+    /*
+    match chunk.id {
+        ChunkId::Fmt => verify_fmt(chunk).unwrap(),
+        ChunkId::Data => println!("data"),
+        _ => println!("hoge"),
+    }
+    */
+
+    // let (input, fmt) = verify_fmt(wav).unwrap();
+    // println!("{:?}", fmt);
 }
