@@ -2,6 +2,8 @@ use nom::bytes::complete::{tag, take};
 use nom::number::complete::{le_u16, le_u32};
 use nom::IResult;
 
+mod reader;
+
 #[derive(Debug, PartialEq)]
 enum RiffIdentifier {
     Wave, //b"WAVE"
@@ -173,6 +175,7 @@ fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
 }
 
 fn main() {
+    reader::printtest();
     let wav = include_bytes!("../resources/test.wav");
     let file_length = wav.len();
     println!("{}", wav.len());
