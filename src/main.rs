@@ -14,7 +14,7 @@ enum RiffIdentifier {
 /// * 'size' - ファイルサイズ(byte) - 8
 /// * 'id' - RIFFの識別子 基本"WAVE"
 #[derive(Debug)]
-struct RiffChunk {
+struct RiffHeader {
     size: u32,
     id: RiffIdentifier,
 }
@@ -95,7 +95,7 @@ struct PeakChunk {
 }
 
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
-fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
+fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
     let (input, _) = tag(b"RIFF")(input)?;
     let (input, size) = le_u32(input)?;
     let (input, id_str) = take(4usize)(input)?;
@@ -106,7 +106,7 @@ fn verify_riff(input: &[u8]) -> IResult<&[u8], RiffChunk> {
         _ => RiffIdentifier::Unknown,
     };
 
-    Ok((input, RiffChunk { size, id }))
+    Ok((input, RiffHeader { size, id }))
 }
 
 /// fmtチャンクを検査します  
@@ -155,7 +155,7 @@ fn main() {
     let wav = include_bytes!("../resources/test.wav");
     let file_length = wav.len();
     println!("{}", wav.len());
-    let (wav, riff) = verify_riff(wav).unwrap();
+    let (wav, riff) = parse_riff_header(wav).unwrap();
     println!("{}", riff.size);
     assert_eq!(riff.id, RiffIdentifier::Wave);
     assert_eq!((file_length - 8) as u32, riff.size);
