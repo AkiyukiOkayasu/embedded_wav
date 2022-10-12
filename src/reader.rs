@@ -30,7 +30,7 @@ pub struct PcmReader<'a> {
 
 impl PcmReader<'_> {
     fn parse_aiff(input: &[u8]) -> IResult<&[u8], &[u8]> {
-        Ok((input, input))
+        todo!(); // Ok((input, input))
     }
 
     fn parse_wav(input: &[u8]) -> IResult<&[u8], &[u8]> {
