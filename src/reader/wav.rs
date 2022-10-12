@@ -71,31 +71,6 @@ pub(crate) struct FmtChunk {
     bit_depth: u16,
 }
 
-/// factチャンク
-///
-/// optionalのチャンク
-/// https://www.g200kg.com/jp/docs/tech/wavfile.html
-///
-/// * 'dw_sample_length' - dataチャンクに記録されている1ch当たりのサンプル数
-#[derive(Debug)]
-pub(crate) struct FactChunk {
-    dw_sample_length: u32,
-}
-
-/// PEAKチャンク
-///
-/// optionalのチャンク
-/// https://www.g200kg.com/jp/docs/tech/wavfile.html
-///
-/// peak_levelとposition_peakはチャンネルごとに作られるのでtemplate的にチャンネル数の変更に対応するべきかも
-#[derive(Debug)]
-pub(crate) struct PeakChunk {
-    version: u32,           // 1固定
-    time_stamp: u32,        // 1970/1/1からの秒数
-    peak_level_1ch: f32,    // 0dBFSを1.0とする符号付きfloat値
-    position_peak_1ch: u32, // 開始位置からのサンプル数
-}
-
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
 pub(crate) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
     let (input, _) = tag(b"RIFF")(input)?;
@@ -151,8 +126,8 @@ pub(crate) fn parse_fmt(input: &[u8]) -> IResult<&[u8], super::PcmSpecs> {
 
     let (input, num_channels) = le_u16(input)?;
     let (input, sample_rate) = le_u32(input)?;
-    let (input, bytes_per_seconds) = le_u32(input)?;
-    let (input, block_size) = le_u16(input)?;
+    let (input, _bytes_per_seconds) = le_u32(input)?;
+    let (input, _block_size) = le_u16(input)?;
     let (input, bit_depth) = le_u16(input)?;
 
     todo!();
