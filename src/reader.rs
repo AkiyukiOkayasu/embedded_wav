@@ -2,19 +2,33 @@ use nom::IResult;
 
 mod wav;
 
+#[derive(Debug, Default)]
+enum AudioFormat {
+    #[default]
+    Unknown,
+    LinearPcmLe,
+    LinearPcmBe,
+    IeeeFloat,
+    ALaw,
+    MuLaw,
+    ImaAdpcm,
+}
+
 #[derive(Default)]
 pub struct PcmSpecs {
+    audio_format: AudioFormat,
     num_channels: u16,
     sample_rate: u32,
     bit_depth: u16,
 }
 
 #[derive(Default)]
-pub struct PcmReader {
+pub struct PcmReader<'a> {
     specs: PcmSpecs,
+    data: &'a [u8],
 }
 
-impl PcmReader {
+impl PcmReader<'_> {
     fn parse_aiff(input: &[u8]) -> IResult<&[u8], &[u8]> {
         Ok((input, input))
     }
@@ -23,9 +37,12 @@ impl PcmReader {
         let (input, chunk) = wav::parse_chunk(input)?;
         match chunk.id {
             wav::ChunkId::Fmt => {
-                wav::parse_fmt(chunk.data);
+                let (_, spec) = wav::parse_fmt(&chunk)?;
+                self.spec = spec;
             }
-            wav::ChunkId::Data => println!("data"),
+            wav::ChunkId::Data => {
+                self.data = chunk.data;
+            }
             wav::ChunkId::Fact => println!("fact"),
             wav::ChunkId::IDv3 => println!("IDv3"),
             wav::ChunkId::JUNK => println!("JUNK"),

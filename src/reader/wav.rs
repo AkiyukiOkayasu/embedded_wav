@@ -2,6 +2,8 @@ use nom::bytes::complete::{tag, take};
 use nom::number::complete::{le_u16, le_u32};
 use nom::IResult;
 
+use crate::reader::{AudioFormat, PcmSpecs};
+
 /// chunkの種類
 ///
 /// * "fmt " - 必須チャンク
@@ -57,20 +59,6 @@ pub(crate) struct RiffHeader {
     pub id: RiffIdentifier,
 }
 
-/// Fmtチャンク構造体  
-///
-/// 必須チャンク
-/// https://www.youfit.co.jp/archives/1418
-#[derive(Debug)]
-pub(crate) struct FmtChunk {
-    wave_format_tag: WaveFormatTag,
-    num_channels: u16,
-    sample_rate: u32,
-    bytes_per_seconds: u32, //sampleRate * num_channels * (bit_depth / 8)
-    block_size: u16,
-    bit_depth: u16,
-}
-
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
 pub(crate) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
     let (input, _) = tag(b"RIFF")(input)?;
@@ -104,24 +92,29 @@ pub(crate) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     Ok((input, Chunk { id, size, data }))
 }
 
-pub(crate) fn parse_fmt(input: &[u8]) -> IResult<&[u8], super::PcmSpecs> {
-    // assert_eq!(chunk.id, ChunkId::Fmt);
-    // assert_eq!(chunk.size, 16);
+pub(crate) fn parse_fmt<'a>(chunk: &'a Chunk<'a>) -> IResult<&'a [u8], PcmSpecs> {
+    assert_eq!(chunk.id, ChunkId::Fmt);
+    assert_eq!(chunk.size, 16);
 
     // let input = chunk.data;
-    let (input, format) = le_u16(input)?;
+    let (input, format) = le_u16(chunk.data)?;
     let wave_format_tag: WaveFormatTag = match format {
         0 => WaveFormatTag::Unknown,
         1 => WaveFormatTag::LinearPcm,
-        2 => WaveFormatTag::MicrosoftAdpcm,
         3 => WaveFormatTag::IeeeFloat,
         6 => WaveFormatTag::ALaw,
         7 => WaveFormatTag::MuLaw,
-        0x10 => WaveFormatTag::OkiAdpcm,
         0x11 => WaveFormatTag::ImaAdpcm,
-        0x20 => WaveFormatTag::YamahaAdpcm,
-        0xF1AC => WaveFormatTag::Flac,
         _ => WaveFormatTag::Unknown,
+    };
+
+    let audio_format: AudioFormat = match wave_format_tag {
+        WaveFormatTag::Unknown => AudioFormat::Unknown,
+        WaveFormatTag::LinearPcm => AudioFormat::LinearPcmLe,
+        WaveFormatTag::IeeeFloat => AudioFormat::IeeeFloat,
+        WaveFormatTag::ALaw => AudioFormat::ALaw,
+        WaveFormatTag::MuLaw => AudioFormat::MuLaw,
+        WaveFormatTag::ImaAdpcm => AudioFormat::ImaAdpcm,
     };
 
     let (input, num_channels) = le_u16(input)?;
@@ -130,5 +123,13 @@ pub(crate) fn parse_fmt(input: &[u8]) -> IResult<&[u8], super::PcmSpecs> {
     let (input, _block_size) = le_u16(input)?;
     let (input, bit_depth) = le_u16(input)?;
 
-    todo!();
+    Ok((
+        input,
+        PcmSpecs {
+            audio_format,
+            num_channels,
+            sample_rate,
+            bit_depth,
+        },
+    ))
 }
