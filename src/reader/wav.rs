@@ -32,16 +32,12 @@ pub(crate) struct Chunk<'a> {
 /// https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/shared/mmreg.h#L2107-L2372
 #[derive(Debug)]
 pub(crate) enum WaveFormatTag {
-    Unknown = 0x00,        //0
-    LinearPcm = 0x01,      //1
-    MicrosoftAdpcm = 0x02, //2
-    IeeeFloat = 0x03,      //3
-    ALaw = 0x06,           //6
-    MuLaw = 0x07,          //7
-    OkiAdpcm = 0x10,       //0x10
-    ImaAdpcm = 0x11,       //0x11 aka DVI ADPCM
-    YamahaAdpcm = 0x20,    //0x20
-    Flac = 0xF1AC,         //0xF1AC
+    Unknown = 0x00,   //0
+    LinearPcm = 0x01, //1
+    IeeeFloat = 0x03, //3
+    ALaw = 0x06,      //6
+    MuLaw = 0x07,     //7
+    ImaAdpcm = 0x11,  //0x11 aka DVI ADPCM
 }
 
 #[derive(Debug, PartialEq)]
