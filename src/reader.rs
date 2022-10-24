@@ -33,12 +33,12 @@ impl PcmReader<'_> {
         todo!(); // Ok((input, input))
     }
 
-    fn parse_wav(input: &[u8]) -> IResult<&[u8], &[u8]> {
+    fn parse_wav(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
         let (input, chunk) = wav::parse_chunk(input)?;
         match chunk.id {
             wav::ChunkId::Fmt => {
-                let (_, spec) = wav::parse_fmt(&chunk)?;
-                self.spec = spec;
+                let (_, spec) = wav::parse_fmt(chunk.data)?;
+                self.specs = spec;
             }
             wav::ChunkId::Data => {
                 self.data = chunk.data;
@@ -55,7 +55,7 @@ impl PcmReader<'_> {
         todo!();
     }
 
-    pub fn read_bytes(input: &[u8]) -> IResult<&[u8], PcmReader> {
+    pub fn read_bytes(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
 
         //TODO WAVかAIFFか判定
@@ -63,7 +63,7 @@ impl PcmReader<'_> {
             println!("{}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
-            PcmReader::parse_wav(input);
+            self.parse_wav(input);
         };
 
         todo!();
