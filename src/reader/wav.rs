@@ -92,12 +92,8 @@ pub(crate) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     Ok((input, Chunk { id, size, data }))
 }
 
-pub(crate) fn parse_fmt<'a>(chunk: &'a Chunk<'a>) -> IResult<&'a [u8], PcmSpecs> {
-    assert_eq!(chunk.id, ChunkId::Fmt);
-    assert_eq!(chunk.size, 16);
-
-    // let input = chunk.data;
-    let (input, format) = le_u16(chunk.data)?;
+pub(super) fn parse_fmt(input: &[u8]) -> IResult<&[u8], PcmSpecs> {
+    let (input, format) = le_u16(input)?;
     let wave_format_tag: WaveFormatTag = match format {
         0 => WaveFormatTag::Unknown,
         1 => WaveFormatTag::LinearPcm,
