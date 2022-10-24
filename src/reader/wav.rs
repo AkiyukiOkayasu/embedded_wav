@@ -33,7 +33,7 @@ pub(crate) struct Chunk<'a> {
 /// LinearPCMとIEEE FloatとIMA ADPCMくらいしか使わないはず
 /// https://github.com/tpn/winsdk-10/blob/9b69fd26ac0c7d0b83d378dba01080e93349c2ed/Include/10.0.14393.0/shared/mmreg.h#L2107-L2372
 #[derive(Debug)]
-pub(crate) enum WaveFormatTag {
+pub(super) enum WaveFormatTag {
     Unknown = 0x00,   //0
     LinearPcm = 0x01, //1
     IeeeFloat = 0x03, //3
@@ -43,7 +43,7 @@ pub(crate) enum WaveFormatTag {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum RiffIdentifier {
+pub(super) enum RiffIdentifier {
     Wave, //b"WAVE"
     Avi,  //b"AVI "
     Unknown,
@@ -54,13 +54,13 @@ pub(crate) enum RiffIdentifier {
 /// * 'size' - ファイルサイズ(byte) - 8
 /// * 'id' - RIFFの識別子 基本"WAVE"
 #[derive(Debug)]
-pub(crate) struct RiffHeader {
+pub(super) struct RiffHeader {
     pub size: u32,
     pub id: RiffIdentifier,
 }
 
 /// ファイルがRIFFから始まり、識別子がWAVEであることのチェック
-pub(crate) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
+pub(super) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
     let (input, _) = tag(b"RIFF")(input)?;
     let (input, size) = le_u32(input)?;
     let (input, id_str) = take(4usize)(input)?;
@@ -74,7 +74,7 @@ pub(crate) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
     Ok((input, RiffHeader { size, id }))
 }
 
-pub(crate) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
+pub(super) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     let (input, id) = take(4usize)(input)?;
     let id = match id {
         b"fmt " => ChunkId::Fmt,
