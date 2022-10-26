@@ -62,9 +62,10 @@ impl<'a> PcmReader<'a> {
 
     pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
+        self.wav = input;
 
         //TODO WAVかAIFFか判定
-        if let Ok((input, riff)) = wav::parse_riff_header(*input) {
+        if let Ok((input, riff)) = wav::parse_riff_header(*self.wav) {
             println!("{}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
