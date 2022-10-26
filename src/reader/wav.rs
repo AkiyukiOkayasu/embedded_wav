@@ -10,7 +10,7 @@ use crate::reader::{AudioFormat, PcmSpecs};
 /// * "fact" - optional
 /// * "PEAK" - optional
 /// * "data" - 必須チャンク
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub(crate) enum ChunkId {
     Fmt,  // b"fmt "
     Fact, // b"fact"
@@ -19,10 +19,11 @@ pub(crate) enum ChunkId {
     JUNK,
     LIST,
     IDv3,
+    #[default]
     Unknown,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct Chunk<'a> {
     pub id: ChunkId,
     pub size: u32,

@@ -15,7 +15,7 @@ enum AudioFormat {
     ImaAdpcm,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct PcmSpecs {
     audio_format: AudioFormat,
     num_channels: u16,
@@ -27,22 +27,26 @@ pub struct PcmSpecs {
 pub struct PcmReader<'a> {
     specs: PcmSpecs,
     data: &'a [u8],
+    wav: Arc<&'a [u8]>,
+    c: wav::Chunk<'a>,
 }
 
-impl PcmReader<'_> {
+impl<'a> PcmReader<'a> {
     fn parse_aiff(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
         todo!(); // Ok((input, input))
     }
 
-    fn parse_wav(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
+    fn parse_wav(&mut self, input: &'a [u8]) -> IResult<&[u8], &[u8]> {
         let (input, chunk) = wav::parse_chunk(input)?;
         match chunk.id {
             wav::ChunkId::Fmt => {
                 let (_, spec) = wav::parse_fmt(chunk.data)?;
+                println!("{:?}", spec);
                 self.specs = spec;
             }
             wav::ChunkId::Data => {
-                self.data = chunk.data;
+                // self.data = chunk.data;
+                self.c = chunk;
             }
             wav::ChunkId::Fact => println!("fact"),
             wav::ChunkId::IDv3 => println!("IDv3"),
@@ -51,16 +55,16 @@ impl PcmReader<'_> {
             wav::ChunkId::PEAK => println!("PEAK"),
             wav::ChunkId::Unknown => println!("Unknown"),
         }
-        println!("{:?}", chunk);
+        // println!("{:?}", chunk);
 
         todo!();
     }
 
-    pub fn read_bytes(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
+    pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
 
         //TODO WAVかAIFFか判定
-        if let Ok((input, riff)) = wav::parse_riff_header(input) {
+        if let Ok((input, riff)) = wav::parse_riff_header(*input) {
             println!("{}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
