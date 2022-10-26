@@ -45,7 +45,7 @@ impl<'a> PcmReader<'a> {
                 self.specs = spec;
             }
             wav::ChunkId::Data => {
-                // self.data = chunk.data;
+                self.data = chunk.data;
                 self.c = chunk;
             }
             wav::ChunkId::Fact => println!("fact"),
