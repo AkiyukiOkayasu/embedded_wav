@@ -32,7 +32,7 @@ pub struct PcmReader<'a> {
 }
 
 impl<'a> PcmReader<'a> {
-    fn parse_aiff(&mut self, input: &[u8]) -> IResult<&[u8], &[u8]> {
+    fn parse_aiff(&mut self, input: &'a [u8]) -> IResult<&[u8], &[u8]> {
         todo!(); // Ok((input, input))
     }
 
