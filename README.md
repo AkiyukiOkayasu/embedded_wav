@@ -1,7 +1,7 @@
 # embedded_wav
 
-Rustのinclude_bytes!でWAVを埋め込み、それをパースする簡易的なサンプル。  
-マイコンのファームで使う想定のもの。  
+Rustのinclude_bytes!でWAVを埋め込み、パースする簡易的なサンプル。  
+将来的にはマイコンのファームで使う想定のもの。  
 
 ## TODO
 
