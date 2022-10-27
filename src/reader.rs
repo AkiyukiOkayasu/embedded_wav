@@ -1,4 +1,4 @@
-use nom::IResult;
+use nom::{multi::many1, IResult};
 use std::sync::Arc;
 
 mod wav;
@@ -37,27 +37,32 @@ impl<'a> PcmReader<'a> {
     }
 
     fn parse_wav(&mut self, input: &'a [u8]) -> IResult<&[u8], &[u8]> {
-        let (input, chunk) = wav::parse_chunk(input)?;
-        match chunk.id {
-            wav::ChunkId::Fmt => {
-                let (_, spec) = wav::parse_fmt(chunk.data)?;
-                println!("{:?}", spec);
-                self.specs = spec;
+        println!("parse_wav input: {}", input.len());
+        let wav = input;
+        let (input, v) = many1(wav::parse_chunk)(input)?;
+        for e in v {
+            match e.id {
+                wav::ChunkId::Fmt => {
+                    println!("fmt");
+                    let (_, spec) = wav::parse_fmt(e.data)?;
+                    // println!("{:?}", spec);
+                    self.specs = spec;
+                }
+                wav::ChunkId::Data => {
+                    println!("Data");
+                    self.data = e.data;
+                    self.c = e;
+                }
+                wav::ChunkId::Fact => println!("fact"),
+                wav::ChunkId::IDv3 => println!("IDv3"),
+                wav::ChunkId::JUNK => println!("JUNK"),
+                wav::ChunkId::LIST => println!("LIST"),
+                wav::ChunkId::PEAK => println!("PEAK"),
+                wav::ChunkId::Unknown => println!("Unknown"),
             }
-            wav::ChunkId::Data => {
-                self.data = chunk.data;
-                self.c = chunk;
-            }
-            wav::ChunkId::Fact => println!("fact"),
-            wav::ChunkId::IDv3 => println!("IDv3"),
-            wav::ChunkId::JUNK => println!("JUNK"),
-            wav::ChunkId::LIST => println!("LIST"),
-            wav::ChunkId::PEAK => println!("PEAK"),
-            wav::ChunkId::Unknown => println!("Unknown"),
         }
-        // println!("{:?}", chunk);
 
-        todo!();
+        return Ok((&[], &[]));
     }
 
     pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
