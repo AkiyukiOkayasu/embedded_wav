@@ -11,4 +11,4 @@ heapless = "0.7.16"
 
 [dependencies.nom]
 version = "7.1.1"
-default-features = false
+# default-features = false
