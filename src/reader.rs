@@ -69,7 +69,7 @@ impl<'a> PcmReader<'a> {
             println!("Riff size: {}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
-            self.parse_wav(input);
+            self.parse_wav(input)?;
         };
 
         todo!();
