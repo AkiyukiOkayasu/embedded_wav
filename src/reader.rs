@@ -66,7 +66,7 @@ impl<'a> PcmReader<'a> {
 
         //TODO WAVかAIFFか判定
         if let Ok((input, riff)) = wav::parse_riff_header(*self.wav) {
-            println!("{}", riff.size);
+            println!("Riff size: {}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
             self.parse_wav(input);
