@@ -37,7 +37,7 @@ impl<'a> PcmReader<'a> {
     }
 
     fn parse_wav(&mut self, input: &'a [u8]) -> IResult<&[u8], &[u8]> {
-        let (input, v) = many1(wav::parse_chunk)(input)?;
+        let (_input, v) = many1(wav::parse_chunk)(input)?;
         for e in v {
             match e.id {
                 wav::ChunkId::Fmt => {
