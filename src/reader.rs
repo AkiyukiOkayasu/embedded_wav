@@ -23,6 +23,8 @@ pub struct PcmSpecs {
     bit_depth: u16,
 }
 
+/// dataとwavとcは将来的にどれかに集約される。
+/// read_bytes()のinputの型が決定したら再検討する。
 #[derive(Default)]
 pub struct PcmReader<'a> {
     specs: PcmSpecs,
@@ -63,6 +65,15 @@ impl<'a> PcmReader<'a> {
         return Ok((&[], &[]));
     }
 
+    /// WAVのByte配列をパースし、再生できるように準備する。
+    /// inputを
+    /// * Arc<&[u8]>
+    /// * Arc<[u8; size]>
+    /// * &[u8]
+    /// のどれにするか検討中。
+    /// PcmReaderがいつ破棄されるかは再生時にしか決められない場合があるのでArcを使うべきだと思うが、スライスだと結局ライフタイムの問題がある。
+    /// 配列だと長さがコンパイル時に決められない。どう書くのがRust的に良いかを探っている。
+    /// これをPcmReaderのnew()相当の初期化関数とするべきかもしれない。
     pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
         self.wav = input;

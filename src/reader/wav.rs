@@ -93,6 +93,7 @@ pub(super) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     Ok((input, Chunk { id, size, data }))
 }
 
+/// WAVはLittleEndianしか使わないのでAudioFormat::LinearPcmBe (Be = BigEndian)にはならない.
 pub(super) fn parse_fmt(input: &[u8]) -> IResult<&[u8], PcmSpecs> {
     let (input, format) = le_u16(input)?;
     let wave_format_tag: WaveFormatTag = match format {
