@@ -39,13 +39,15 @@ impl<'a> PcmReader<'a> {
     }
 
     fn parse_wav(&mut self, input: &'a [u8]) -> IResult<&[u8], &[u8]> {
+        //many1はallocが実装されていないと使えない。no_stdで使うなら逐次的に実行するべき。
         let (_input, v) = many1(wav::parse_chunk)(input)?;
+
         for e in v {
             match e.id {
                 wav::ChunkId::Fmt => {
                     println!("fmt");
                     let (_, spec) = wav::parse_fmt(e.data)?;
-                    // println!("{:?}", spec);
+                    println!("{:?}", spec);
                     self.specs = spec;
                 }
                 wav::ChunkId::Data => {
@@ -72,7 +74,9 @@ impl<'a> PcmReader<'a> {
     /// * &[u8]
     /// のどれにするか検討中。
     /// PcmReaderがいつ破棄されるかは再生時にしか決められない場合があるのでArcを使うべきだと思うが、スライスだと結局ライフタイムの問題がある。
-    /// 配列だと長さがコンパイル時に決められない。どう書くのがRust的に良いかを探っている。
+    /// 少なくともinputとPcmReaderのlifetimeの長さがinput>PcmReaderであればよい。    
+    /// http://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch19-02-advanced-lifetimes.html
+    /// また、配列だと長さがコンパイル時に決められない。ジェネリクスで書くのか、どう書くのがRust的に良いかを探っている。
     /// これをPcmReaderのnew()相当の初期化関数とするべきかもしれない。
     pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
