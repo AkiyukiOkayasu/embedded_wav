@@ -28,7 +28,6 @@ pub struct PcmSpecs {
 pub struct PcmReader<'a> {
     specs: PcmSpecs,
     data: &'a [u8],
-    c: wav::Chunk<'a>,
 }
 
 impl<'a> PcmReader<'a> {
@@ -51,7 +50,6 @@ impl<'a> PcmReader<'a> {
                 wav::ChunkId::Data => {
                     println!("Data");
                     self.data = e.data;
-                    self.c = e;
                 }
                 wav::ChunkId::Fact => println!("fact"),
                 wav::ChunkId::IDv3 => println!("IDv3"),
@@ -61,7 +59,6 @@ impl<'a> PcmReader<'a> {
                 wav::ChunkId::Unknown => println!("Unknown"),
             }
         }
-
         return Ok((&[], &[]));
     }
 
@@ -76,18 +73,25 @@ impl<'a> PcmReader<'a> {
     /// http://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch19-02-advanced-lifetimes.html
     /// また、配列だと長さがコンパイル時に決められない。ジェネリクスで書くのか、どう書くのがRust的に良いかを探っている。
     /// これをPcmReaderのnew()相当の初期化関数とするべきかもしれない。
-    pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
+    pub fn read_bytes(input: &'a [u8]) -> Self {
         let file_length = input.len();
 
-        //TODO WAVかAIFFか判定
-        if let Ok((input, riff)) = wav::parse_riff_header(*self.wav) {
-            println!("Riff size: {}", riff.size);
+        let mut reader: PcmReader = Default::default();
+
+        //WAVの場合
+        if let Ok((input, riff)) = wav::parse_riff_header(input) {
+            println!("Riff length in bytes: {}", riff.size);
             assert_eq!(riff.id, wav::RiffIdentifier::Wave);
             assert_eq!((file_length - 8) as u32, riff.size);
-            self.parse_wav(input)?;
+            if let Ok((_, _)) = reader.parse_wav(input) {
+                return reader;
+            }
         };
 
+        //AIFFの場合
         todo!();
-        //Ok((input, PcmReader {}))
+
+        //WAVでもAIFFでもなかった場合
+        panic!();
     }
 }
