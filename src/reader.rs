@@ -1,5 +1,4 @@
 use nom::{multi::many1, IResult};
-use std::sync::Arc;
 
 mod wav;
 
@@ -29,7 +28,6 @@ pub struct PcmSpecs {
 pub struct PcmReader<'a> {
     specs: PcmSpecs,
     data: &'a [u8],
-    wav: Arc<&'a [u8]>,
     c: wav::Chunk<'a>,
 }
 
@@ -80,7 +78,6 @@ impl<'a> PcmReader<'a> {
     /// これをPcmReaderのnew()相当の初期化関数とするべきかもしれない。
     pub fn read_bytes(&mut self, input: Arc<&'a [u8]>) -> IResult<&[u8], &[u8]> {
         let file_length = input.len();
-        self.wav = input;
 
         //TODO WAVかAIFFか判定
         if let Ok((input, riff)) = wav::parse_riff_header(*self.wav) {
