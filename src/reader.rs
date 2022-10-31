@@ -98,20 +98,37 @@ impl<'a> PcmReader<'a> {
         panic!();
     }
 
-    ///DATAチャンクを読んでサンプルを読みだす    
+    /// DATAチャンクを読んでサンプルを読みだす    
+    /// フォーマットに関わらず+/-1の範囲に正規化された数を返す
     pub fn read_sample(&self, channel: u32, sample: u32) -> Option<f32> {
+        if channel >= self.specs.num_channels as u32 {
+            return None;
+        }
+
+        let max_sample_size = self.data.len() / self.specs.num_channels as usize;
+        if sample >= max_sample_size as u32 {
+            return None;
+        }
+
         match self.specs.audio_format {
             AudioFormat::Unknown => return None,
             AudioFormat::LinearPcmLe => {
-                if self.specs.bit_depth == 16u16 {
-                    todo!();
-                }
-
-                //24bit or 32bit
-                let (_remains, sample) = le_i32::<_, Error<_>>(self.data).finish().unwrap();
-                let max = 2i32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
-                let sample = sample as f32 / max as f32;
-                return Some(sample);
+                let sample = match self.specs.bit_depth {
+                    16 => {
+                        todo!();
+                    }
+                    24 => {
+                        todo!();
+                    }
+                    32 => {
+                        let (_remains, sample) = le_i32::<_, Error<_>>(self.data).finish().unwrap();
+                        let max = 2i32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
+                        let sample = sample as f32 / max as f32;
+                        Some(sample)
+                    }
+                    _ => None,
+                };
+                return sample;
             }
             AudioFormat::LinearPcmBe => {
                 todo!();
