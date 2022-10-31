@@ -1,3 +1,6 @@
+use nom::error::Error;
+use nom::number::complete::{le_f32, le_i32};
+use nom::Finish;
 use nom::{multi::many1, IResult};
 
 mod wav;
@@ -93,5 +96,47 @@ impl<'a> PcmReader<'a> {
 
         //WAVでもAIFFでもなかった場合
         panic!();
+    }
+
+    ///DATAチャンクを読んでサンプルを読みだす    
+    pub fn read_sample(&self, channel: u32, sample: u32) -> Option<f32> {
+        match self.specs.audio_format {
+            AudioFormat::Unknown => return None,
+            AudioFormat::LinearPcmLe => {
+                if self.specs.bit_depth == 16u16 {
+                    todo!();
+                }
+
+                //24bit or 32bit
+                let (_remains, sample) = le_i32::<_, Error<_>>(self.data).finish().unwrap();
+                let max = 2i32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
+                let sample = sample as f32 / max as f32;
+                return Some(sample);
+            }
+            AudioFormat::LinearPcmBe => {
+                todo!();
+            }
+            AudioFormat::IeeeFloat => {
+                if self.specs.bit_depth != 32 {
+                    return None;
+                }
+
+                //32bit float
+                let byte_offset =
+                    (4u32 * sample * self.specs.num_channels as u32) + (4u32 * channel);
+                let data = &self.data[byte_offset as usize..];
+                let (_remains, sample) = le_f32::<_, Error<_>>(data).finish().unwrap();
+                return Some(sample);
+            }
+            AudioFormat::ALaw => {
+                todo!();
+            }
+            AudioFormat::MuLaw => {
+                todo!();
+            }
+            AudioFormat::ImaAdpcm => {
+                todo!();
+            }
+        }
     }
 }
