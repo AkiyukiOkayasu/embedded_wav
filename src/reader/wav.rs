@@ -1,4 +1,5 @@
-use nom::bytes::complete::{tag, take};
+use nom::bytes::complete::{tag, tag_no_case, take};
+use nom::error::Error;
 use nom::number::complete::{le_u16, le_u32};
 use nom::IResult;
 
@@ -76,17 +77,38 @@ pub(super) fn parse_riff_header(input: &[u8]) -> IResult<&[u8], RiffHeader> {
 }
 
 pub(super) fn parse_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
-    let (input, id) = take(4usize)(input)?;
-    let id = match id {
-        b"fmt " => ChunkId::Fmt,
-        b"fact" => ChunkId::Fact,
-        b"PEAK" => ChunkId::PEAK,
-        b"data" => ChunkId::Data,
-        b"JUNK" => ChunkId::JUNK,
-        b"IDv3" => ChunkId::IDv3,
-        b"LIST" => ChunkId::LIST,
-        _ => ChunkId::Unknown,
+    let (input, chunk_id) = take(4usize)(input)?;
+
+    let mut id = ChunkId::Unknown;
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("fmt ")(chunk_id) {
+        id = ChunkId::Fmt;
     };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("fact")(chunk_id) {
+        id = ChunkId::Fact;
+    };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("PEAK")(chunk_id) {
+        id = ChunkId::PEAK;
+    };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("data")(chunk_id) {
+        id = ChunkId::Data;
+    };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("junk")(chunk_id) {
+        id = ChunkId::JUNK;
+    };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("IDv3")(chunk_id) {
+        id = ChunkId::IDv3;
+    };
+
+    if let Ok((_, _)) = tag_no_case::<_, _, Error<_>>("LIST")(chunk_id) {
+        id = ChunkId::LIST;
+    };
+
     let (input, size) = le_u32(input)?;
     let (input, data) = take(size)(input)?;
 
