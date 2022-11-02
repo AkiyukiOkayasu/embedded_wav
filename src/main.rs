@@ -3,7 +3,7 @@ mod reader;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
 fn main() {
-    let wav = include_bytes!("../resources/test.wav");
+    let wav = include_bytes!("../resources/Sine440Hz_1ch_48000Hz_32FP.wav");
     println!("Wave length in bytes: {}", wav.len());
 
     let host = cpal::default_host();
