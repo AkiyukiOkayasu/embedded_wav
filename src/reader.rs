@@ -149,7 +149,7 @@ impl<'a> PcmReader<'a> {
                             (8u32 * sample * self.specs.num_channels as u32) + (8u32 * channel);
                         let data = &self.data[byte_offset as usize..];
                         let (_remains, sample) = le_f64::<_, Error<_>>(data).finish().unwrap();
-                        return Some(sample as f32); // f32にダウンキャストするべきなのか検討
+                        return Some(sample as f32); // TODO f32にダウンキャストするべきなのか検討
                     }
                     _ => {
                         return None;
