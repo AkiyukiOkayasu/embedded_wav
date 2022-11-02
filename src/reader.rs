@@ -1,5 +1,5 @@
 use nom::error::Error;
-use nom::number::complete::{le_f32, le_i32};
+use nom::number::complete::{le_f32, le_f64, le_i32};
 use nom::Finish;
 use nom::{multi::many1, IResult};
 
@@ -134,16 +134,27 @@ impl<'a> PcmReader<'a> {
                 todo!();
             }
             AudioFormat::IeeeFloat => {
-                if self.specs.bit_depth != 32 {
-                    return None;
+                match self.specs.bit_depth {
+                    32 => {
+                        //32bit float
+                        let byte_offset =
+                            (4u32 * sample * self.specs.num_channels as u32) + (4u32 * channel);
+                        let data = &self.data[byte_offset as usize..];
+                        let (_remains, sample) = le_f32::<_, Error<_>>(data).finish().unwrap();
+                        return Some(sample);
+                    }
+                    64 => {
+                        //64bit float
+                        let byte_offset =
+                            (8u32 * sample * self.specs.num_channels as u32) + (8u32 * channel);
+                        let data = &self.data[byte_offset as usize..];
+                        let (_remains, sample) = le_f64::<_, Error<_>>(data).finish().unwrap();
+                        return Some(sample as f32); // f32にダウンキャストするべきなのか検討
+                    }
+                    _ => {
+                        return None;
+                    }
                 }
-
-                //32bit float
-                let byte_offset =
-                    (4u32 * sample * self.specs.num_channels as u32) + (4u32 * channel);
-                let data = &self.data[byte_offset as usize..];
-                let (_remains, sample) = le_f32::<_, Error<_>>(data).finish().unwrap();
-                return Some(sample);
             }
             AudioFormat::ALaw => {
                 todo!();
