@@ -113,7 +113,7 @@ impl<'a> PcmReader<'a> {
         match self.specs.audio_format {
             AudioFormat::Unknown => return None,
             AudioFormat::LinearPcmLe => {
-                let sample = match self.specs.bit_depth {
+                match self.specs.bit_depth {
                     16 => {
                         todo!();
                     }
@@ -121,14 +121,16 @@ impl<'a> PcmReader<'a> {
                         todo!();
                     }
                     32 => {
-                        let (_remains, sample) = le_i32::<_, Error<_>>(self.data).finish().unwrap();
-                        let max = 2i32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
+                        let byte_offset =
+                            (4u32 * sample * self.specs.num_channels as u32) + (4u32 * channel);
+                        let data = &self.data[byte_offset as usize..];
+                        let max = 2u32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
+                        let (_remains, sample) = le_i32::<_, Error<_>>(data).finish().unwrap();
                         let sample = sample as f32 / max as f32;
-                        Some(sample)
+                        return Some(sample);
                     }
-                    _ => None,
-                };
-                return sample;
+                    _ => return None,
+                }
             }
             AudioFormat::LinearPcmBe => {
                 todo!();
