@@ -124,9 +124,9 @@ impl<'a> PcmReader<'a> {
                         let byte_offset =
                             (4u32 * sample * self.specs.num_channels as u32) + (4u32 * channel);
                         let data = &self.data[byte_offset as usize..];
-                        let max = 2u32.pow(self.specs.bit_depth as u32 - 1u32); //normalize factor: 2^(BitDepth-1)
+                        const MAX: u32 = 2u32.pow(31); //normalize factor: 2^(BitDepth-1)
                         let (_remains, sample) = le_i32::<_, Error<_>>(data).finish().unwrap();
-                        let sample = sample as f32 / max as f32;
+                        let sample = sample as f32 / MAX as f32;
                         return Some(sample);
                     }
                     _ => return None,
