@@ -1,5 +1,5 @@
 use nom::error::Error;
-use nom::number::complete::{le_f32, le_f64, le_i32};
+use nom::number::complete::{le_f32, le_f64, le_i16, le_i24, le_i32};
 use nom::Finish;
 use nom::{multi::many1, IResult};
 
@@ -115,10 +115,22 @@ impl<'a> PcmReader<'a> {
             AudioFormat::LinearPcmLe => {
                 match self.specs.bit_depth {
                     16 => {
-                        todo!();
+                        let byte_offset =
+                            (2u32 * sample * self.specs.num_channels as u32) + (2u32 * channel);
+                        let data = &self.data[byte_offset as usize..];
+                        const MAX: u32 = 2u32.pow(15); //normalize factor: 2^(BitDepth-1)
+                        let (_remains, sample) = le_i16::<_, Error<_>>(data).finish().unwrap();
+                        let sample = sample as f32 / MAX as f32;
+                        return Some(sample);
                     }
                     24 => {
-                        todo!();
+                        let byte_offset =
+                            (3u32 * sample * self.specs.num_channels as u32) + (3u32 * channel);
+                        let data = &self.data[byte_offset as usize..];
+                        const MAX: u32 = 2u32.pow(23); //normalize factor: 2^(BitDepth-1)
+                        let (_remains, sample) = le_i24::<_, Error<_>>(data).finish().unwrap();
+                        let sample = sample as f32 / MAX as f32;
+                        return Some(sample);
                     }
                     32 => {
                         let byte_offset =
