@@ -1,3 +1,8 @@
+# deprecated 
+
+このリポジトリはもう更新されません。  
+PCMファイル読み込み機能は今後[pacmog](https://github.com/AkiyukiOkayasu/pacmog)で開発が進められます。  
+
 # embedded_wav
 
 Rustのinclude_bytes!で埋め込んだWAVEファイルを再生する。  
